@@ -1,0 +1,29 @@
+{
+  "_lisez_moi": "Cas partagés par les tests Python et JavaScript. Les valeurs de la fiche DAJ ne se corrigent jamais pour faire passer une implémentation.",
+  "fiche_daj_2024": {
+    "source": "Fiche DAJ « Les méthodes de notation du critère prix dans les marchés publics », version du 18 mars 2024 : cinq offres, notes sur 10 arrondies à l'unité.",
+    "prix": [80000, 120000, 150000, 250000, 400000],
+    "bareme": 10,
+    "attendu_arrondi": {
+      "proportionnelle": [10, 7, 5, 3, 2],
+      "minmax": [10, 9, 8, 5, 0],
+      "moyenne": [7, 6, 6, 4, 3],
+      "moyenne_carree": [9, 7, 6, 4, 2]
+    }
+  },
+  "calculs": [
+    {"nom": "classique, à la main", "formule": "proportionnelle", "prix": [100, 150, 200], "bareme": 100, "attendu": [100, 66.66666666666667, 50]},
+    {"nom": "écart au moins-disant, k = 1", "formule": "soustractive", "prix": [100, 150, 200], "bareme": 100, "attendu": [100, 50, 0]},
+    {"nom": "écart au moins-disant, k = 2, borné à 0", "formule": "soustractive", "prix": [100, 150, 200], "bareme": 100, "k": 2, "attendu": [100, 0, 0]},
+    {"nom": "linéaire, à la main", "formule": "minmax", "prix": [100, 150, 200], "bareme": 100, "attendu": [100, 50, 0]},
+    {"nom": "puissance α = 2", "formule": "puissance", "prix": [100, 150, 200], "bareme": 100, "alpha": 2, "attendu": [100, 44.44444444444444, 25]},
+    {"nom": "moyenne (Pmoy = 150)", "formule": "moyenne", "prix": [100, 150, 200], "bareme": 100, "attendu": [60, 50, 42.857142857142854]},
+    {"nom": "moyenne au carré (Pmoy = 150)", "formule": "moyenne_carree", "prix": [100, 150, 200], "bareme": 100, "attendu": [69.23076923076923, 50, 36]},
+    {"nom": "une offre écartée sort du calcul de Pmin", "formule": "proportionnelle", "prix": [100, 150, 200], "bareme": 100, "ecartees": [0], "attendu": [null, 100, 75]},
+    {"nom": "exemple linéaire de la fiche DAJ : 200 € entre 100 et 250", "formule": "minmax", "prix": [100, 200, 250], "bareme": 10, "attendu": [10, 3.3333333333333335, 0]},
+    {"nom": "exemple classique de la fiche DAJ : 125 € et 200 € face à 100 €", "formule": "proportionnelle", "prix": [100, 125, 200], "bareme": 10, "attendu": [10, 8, 5]},
+    {"nom": "pas de note négative", "formule": "soustractive", "prix": [100, 900], "bareme": 20, "attendu": [20, 0]},
+    {"nom": "offres toutes égales en linéaire", "formule": "minmax", "prix": [500, 500], "bareme": 10, "attendu": [10, 10]},
+    {"nom": "médiane d'un nombre pair d'offres", "formule": "mediane", "prix": [100, 200, 300, 400], "bareme": 100, "attendu": [71.42857142857143, 55.55555555555556, 45.45454545454545, 38.46153846153846]}
+  ]
+}

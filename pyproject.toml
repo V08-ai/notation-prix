@@ -1,0 +1,35 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "notation-prix"
+version = "0.1.0"
+description = "Les formules de notation du critère prix des marchés publics français, vérifiées sur les exemples de la fiche DAJ de 2024."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Victor Lavolé" }]
+keywords = ["marchés publics", "commande publique", "notation", "critère prix", "analyse des offres", "DAJ"]
+classifiers = [
+    "Natural Language :: French",
+    "Programming Language :: Python :: 3",
+    "Intended Audience :: Legal Industry",
+    "Topic :: Office/Business",
+]
+dependencies = []
+
+[project.urls]
+Source = "https://github.com/V08-ai/notation-prix"
+Calculatrice = "https://v08-ai.github.io/notation-prix/"
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/notation_prix"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

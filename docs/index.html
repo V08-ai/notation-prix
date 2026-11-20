@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notation du critère prix</title>
+<meta name="description" content="Calculez la note de prix de chaque offre selon les méthodes de la fiche DAJ de mars 2024, et voyez comment la méthode change le classement final.">
+<style>
+  :root {
+    --fond: #faf8f5; --surface: #ffffff; --texte: #1b1a18; --doux: #5f5a53;
+    --ligne: #e3ddd4; --accent: #1b1a18; --accent-texte: #ffffff;
+    --mis-en-avant: #efe8de; --erreur: #a3261b;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --fond: #161514; --surface: #1f1e1c; --texte: #f1ede7; --doux: #a9a299;
+      --ligne: #36332f; --accent: #f1ede7; --accent-texte: #161514;
+      --mis-en-avant: #2c2925; --erreur: #ff8a7a;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --fond: #161514; --surface: #1f1e1c; --texte: #f1ede7; --doux: #a9a299;
+    --ligne: #36332f; --accent: #f1ede7; --accent-texte: #161514;
+    --mis-en-avant: #2c2925; --erreur: #ff8a7a;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--fond); color: var(--texte);
+    font: 16px/1.55 Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 960px; margin: 0 auto; padding: 40px 16px 64px; }
+  h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 12px; letter-spacing: -0.01em; }
+  h2 { font-size: 1.15rem; margin: 0 0 12px; }
+  p { margin: 0 0 12px; }
+  .chapeau { color: var(--doux); max-width: 62ch; margin-bottom: 32px; }
+  section {
+    background: var(--surface); border: 1px solid var(--ligne); border-radius: 10px;
+    padding: 20px; margin-bottom: 20px;
+  }
+  .offre {
+    display: grid; grid-template-columns: 5.5rem minmax(0, 1fr) auto auto; gap: 10px;
+    align-items: center; padding: 6px 0; border-bottom: 1px solid var(--ligne);
+  }
+  .offre.avec-technique { grid-template-columns: 5.5rem minmax(0, 1fr) 7rem auto auto; }
+  .offre:last-child { border-bottom: 0; }
+  .offre .nom { font-weight: 600; }
+  label { font-size: 0.9rem; color: var(--doux); }
+  input[type="text"], input[type="number"], select {
+    font: inherit; color: var(--texte); background: var(--fond);
+    border: 1px solid var(--ligne); border-radius: 6px; padding: 7px 10px; width: 100%;
+  }
+  input:focus-visible, select:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  .case { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; color: var(--texte); }
+  button {
+    font: inherit; cursor: pointer; border-radius: 6px; padding: 7px 12px;
+    border: 1px solid var(--ligne); background: var(--surface); color: var(--texte);
+  }
+  button.principal { background: var(--accent); color: var(--accent-texte); border-color: var(--accent); }
+  button.retirer { padding: 4px 9px; color: var(--doux); }
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .reglages { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
+  .reglages > div { display: flex; flex-direction: column; gap: 4px; }
+  .cache { display: none !important; }
+  .tableau { overflow-x: auto; margin: 0 -4px; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  caption { text-align: left; color: var(--doux); font-size: 0.9rem; padding-bottom: 8px; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid var(--ligne); text-align: right; white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { font-size: 0.85rem; font-weight: 600; color: var(--doux); vertical-align: bottom; }
+  thead th small { display: block; font-weight: 400; }
+  td.meilleur { background: var(--mis-en-avant); font-weight: 700; }
+  td.ecartee { color: var(--doux); font-style: italic; }
+  .rang { color: var(--doux); font-size: 0.85em; }
+  .lecture { margin-top: 14px; max-width: 70ch; }
+  .erreur { color: var(--erreur); font-weight: 600; }
+  footer { color: var(--doux); font-size: 0.9rem; margin-top: 32px; }
+  footer a, .chapeau a { color: inherit; }
+  @media (max-width: 560px) {
+    .offre, .offre.avec-technique {
+      grid-template-columns: 4.2rem minmax(0, 1fr) auto;
+      grid-template-areas: "nom montant retirer" ". technique case";
+      row-gap: 6px; padding: 10px 0;
+    }
+    .offre .nom { grid-area: nom; }
+    .offre .montant { grid-area: montant; }
+    .offre .technique { grid-area: technique; }
+    .offre .case { grid-area: case; }
+    .offre .retirer { grid-area: retirer; }
+    h1 { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Notation du critère prix</h1>
+  <p class="chapeau">Saisissez le montant des offres : la page calcule la note de prix de chacune selon les méthodes de la
+    <a href="https://www.economie.gouv.fr/daj/methodes-notation-critere-prix-outil-pratique">fiche de la DAJ</a>
+    de mars 2024. Ajoutez une note technique pour voir la méthode changer le classement final. Le calcul se fait dans votre navigateur : rien n'est envoyé.</p>
+
+  <section aria-labelledby="t-offres">
+    <h2 id="t-offres">Les offres</h2>
+    <p class="chapeau" style="margin-bottom:12px">Montants tels que le règlement de la consultation les retient, en principe TTC. Une offre écartée (irrégulière, inacceptable, inappropriée ou anormalement basse) ne reçoit pas de note et ne compte pas dans les prix de référence.</p>
+    <div id="offres"></div>
+    <div class="actions">
+      <button type="button" id="ajouter">Ajouter une offre</button>
+      <button type="button" id="exemple">Reprendre l'exemple de la fiche DAJ</button>
+      <button type="button" id="vider">Tout effacer</button>
+    </div>
+  </section>
+
+  <section aria-labelledby="t-reglages">
+    <h2 id="t-reglages">Le barème</h2>
+    <div class="reglages">
+      <div><label for="bareme">Note maximale</label><input type="number" id="bareme" value="10" min="0.01" step="any"></div>
+      <div><label for="decimales">Arrondi des notes</label>
+        <select id="decimales"><option value="0">à l'unité</option><option value="1">au dixième</option><option value="2" selected>au centième</option></select></div>
+      <div><span class="case"><input type="checkbox" id="avec-technique" checked><label for="avec-technique">Ajouter la valeur technique</label></span></div>
+      <div><span class="case"><input type="checkbox" id="variantes"><label for="variantes">Afficher aussi les variantes</label></span></div>
+      <div id="bloc-poids" class="cache"><label for="poids">Poids du prix (%)</label><input type="number" id="poids" value="40" min="0" max="100" step="any"></div>
+      <div class="param cache"><label for="k">k (écart au moins-disant)</label><input type="number" id="k" value="1" min="0" step="any"></div>
+      <div class="param cache"><label for="alpha">α (puissance)</label><input type="number" id="alpha" value="2" min="0" step="any"></div>
+      <div class="param cache"><label for="beta">β (moyenne, médiane)</label><input type="number" id="beta" value="2" min="0" step="any"></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="t-notes">
+    <h2 id="t-notes">Les notes de prix</h2>
+    <div id="resultats" aria-live="polite"></div>
+  </section>
+
+  <section aria-labelledby="t-final" id="bloc-final" class="cache">
+    <h2 id="t-final">Le classement final</h2>
+    <div id="final" aria-live="polite"></div>
+  </section>
+
+  <footer>
+    <p>Formules et tests : <a href="https://github.com/V08-ai/notation-prix">github.com/V08-ai/notation-prix</a>, avec un paquet Python qui fait le même calcul.
+      Les quatre méthodes repérées M1 à M3b sont celles dont la fiche DAJ donne un exemple chiffré ; les notes ne descendent jamais sous 0
+      (<a href="https://www.legifrance.gouv.fr/ceta/id/CETATEXT000026793241">CE, 18 décembre 2012, n° 362532</a>) ni au-dessus du maximum.</p>
+    <p>Cette page ne remplace ni l'analyse de l'acheteur ni un avis juridique. Victor Lavolé · Temi · licence Apache 2.0.</p>
+  </footer>
+</main>
+
+<script src="notation.js"></script>
+<script>
+(function () {
+  "use strict";
+  var NP = window.NotationPrix;
+  var DAJ = ["80 000", "120 000", "150 000", "250 000", "400 000"];
+  var BASE = ["proportionnelle", "minmax", "moyenne", "moyenne_carree"];
+  var VARIANTES = ["soustractive", "puissance", "moyenne_beta", "mediane", "mediane_beta"];
+  var nombre = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 });
+  var offres = [];
+  var el = function (id) { return document.getElementById(id); };
+
+  function lettre(i) { return i < 26 ? String.fromCharCode(65 + i) : String(i + 1); }
+
+  function lireMontant(texte) {
+    var s = String(texte).replace(/[\s  €]/g, "");
+    if (s === "") return null;
+    if (s.indexOf(",") >= 0 && s.indexOf(".") >= 0) s = s.replace(/\./g, "").replace(",", ".");
+    else if (s.indexOf(",") >= 0) s = s.replace(",", ".");
+    else if ((s.match(/\./g) || []).length > 1) s = s.replace(/\./g, "");
+    return /^\d+(\.\d+)?$/.test(s) ? Number(s) : NaN;
+  }
+
+  function dessinerOffres() {
+    var avecTech = el("avec-technique").checked;
+    var conteneur = el("offres");
+    conteneur.innerHTML = "";
+    offres.forEach(function (o, i) {
+      var ligne = document.createElement("div");
+      ligne.className = "offre" + (avecTech ? " avec-technique" : "");
+      ligne.innerHTML =
+        '<span class="nom">Offre ' + lettre(i) + '</span>' +
+        '<input type="text" class="montant" inputmode="decimal" aria-label="Montant de l\'offre ' + lettre(i) + '" placeholder="Montant en euros">' +
+        (avecTech ? '<input type="number" class="technique" min="0" max="100" step="any" aria-label="Note technique de l\'offre ' + lettre(i) + ' sur 100" placeholder="Tech. /100">' : "") +
+        '<span class="case"><input type="checkbox" id="ec-' + i + '"><label for="ec-' + i + '">Écartée</label></span>' +
+        '<button type="button" class="retirer" aria-label="Retirer l\'offre ' + lettre(i) + '">×</button>';
+      var montant = ligne.querySelector('input[type="text"]');
+      montant.value = o.montant;
+      montant.addEventListener("input", function () { o.montant = montant.value; calculer(); });
+      var tech = ligne.querySelector(".technique");
+      if (tech) { tech.value = o.tech; tech.addEventListener("input", function () { o.tech = tech.value; calculer(); }); }
+      var ec = ligne.querySelector('input[type="checkbox"]');
+      ec.checked = o.ecartee;
+      ec.addEventListener("change", function () { o.ecartee = ec.checked; calculer(); });
+      ligne.querySelector(".retirer").addEventListener("click", function () {
+        offres.splice(i, 1); dessinerOffres(); calculer();
+      });
+      conteneur.appendChild(ligne);
+    });
+  }
+
+  function formatNote(n, d) {
+    if (n === null) return null;
+    return NP.arrondir(n, d).toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+
+  function entete(f) {
+    var def = NP.FORMULES[f];
+    return "<th scope=\"col\">" + def.nom + (def.exempleDaj ? " (" + def.exempleDaj + ")" : "") + "<small>" + def.expression + "</small></th>";
+  }
+
+  function tableau(legende, lignes, formules, cellule) {
+    var h = '<div class="tableau"><table><caption>' + legende + "</caption><thead><tr><th scope=\"col\">Offre</th><th scope=\"col\">Montant</th>";
+    formules.forEach(function (f) { h += entete(f); });
+    h += "</tr></thead><tbody>";
+    lignes.forEach(function (l) {
+      h += "<tr><td>Offre " + l.lettre + "</td><td>" + (isNaN(l.montant) ? "—" : nombre.format(l.montant) + " €") + "</td>";
+      formules.forEach(function (f) { h += cellule(l, f); });
+      h += "</tr>";
+    });
+    return h + "</tbody></table></div>";
+  }
+
+  function calculer() {
+    var avecTech = el("avec-technique").checked;
+    var variantes = el("variantes").checked;
+    el("bloc-poids").classList.toggle("cache", !avecTech);
+    el("bloc-final").classList.toggle("cache", !avecTech);
+    document.querySelectorAll(".param").forEach(function (p) { p.classList.toggle("cache", !variantes); });
+
+    var formules = variantes ? BASE.concat(VARIANTES) : BASE;
+    var d = Number(el("decimales").value);
+    var bareme = Number(el("bareme").value);
+    var options = { bareme: bareme, k: Number(el("k").value), alpha: Number(el("alpha").value), beta: Number(el("beta").value) };
+
+    var lignes = [], prix = [], ecartees = [], probleme = null;
+    offres.forEach(function (o, i) {
+      var m = lireMontant(o.montant);
+      if (m === null) return;
+      if (isNaN(m) || m <= 0) { if (!o.ecartee) probleme = "Offre " + lettre(i) + " : le montant « " + o.montant + " » n'est pas un nombre positif."; m = NaN; }
+      if (o.ecartee) ecartees.push(prix.length);
+      lignes.push({ lettre: lettre(i), montant: m, ecartee: o.ecartee, tech: o.tech === "" ? null : Number(o.tech) });
+      prix.push(o.ecartee && isNaN(m) ? 1 : m);
+    });
+    if (!(bareme > 0)) probleme = "La note maximale doit être un nombre positif.";
+    if (!probleme && prix.length === 0) probleme = "Saisissez au moins une offre.";
+    if (!probleme && ecartees.length === prix.length) probleme = "Toutes les offres sont écartées : aucune note possible.";
+    if (probleme) {
+      el("resultats").innerHTML = '<p class="erreur">' + probleme + "</p>";
+      el("final").innerHTML = "";
+      return;
+    }
+
+    var notes = {};
+    formules.forEach(function (f) {
+      notes[f] = NP.noter(prix, f, Object.assign({ ecartees: ecartees }, options));
+      var meilleure = Math.max.apply(null, notes[f].filter(function (n) { return n !== null; }));
+      notes[f].meilleure = meilleure;
+    });
+    lignes.forEach(function (l, i) { l.index = i; });
+
+    el("resultats").innerHTML = tableau("Note de prix de chaque offre, sur " + nombre.format(bareme) + ".", lignes, formules, function (l, f) {
+      var n = notes[f][l.index];
+      if (n === null) return '<td class="ecartee">écartée</td>';
+      return "<td" + (n === notes[f].meilleure ? ' class="meilleur"' : "") + ">" + formatNote(n, d) + "</td>";
+    }) + lecturePrix(lignes, notes, d);
+
+    if (avecTech) dessinerFinal(lignes, notes, formules, bareme, d);
+  }
+
+  function lecturePrix(lignes, notes, d) {
+    var retenues = lignes.filter(function (l) { return !l.ecartee; });
+    if (retenues.length < 2) return "";
+    var chere = retenues.reduce(function (a, b) { return b.montant > a.montant ? b : a; });
+    var morceaux = BASE.map(function (f) { return formatNote(notes[f][chere.index], d) + " en " + NP.FORMULES[f].nom.toLowerCase(); });
+    return '<p class="lecture">Toutes ces méthodes classent les offres dans l\'ordre de leur prix. Ce qui change, c\'est l\'écart entre les notes : l\'offre ' +
+      chere.lettre + ", la plus chère, obtient " + morceaux.join(", ") + ". Cet écart décide du poids réel du prix face à la valeur technique.</p>";
+  }
+
+  function dessinerFinal(lignes, notes, formules, bareme, d) {
+    var poids = Math.min(100, Math.max(0, Number(el("poids").value))) / 100;
+    var manque = lignes.some(function (l) { return !l.ecartee && (l.tech === null || isNaN(l.tech)); });
+    if (manque) {
+      el("final").innerHTML = "<p>Saisissez la note technique (sur 100) de chaque offre retenue.</p>";
+      return;
+    }
+    var totaux = {};
+    formules.forEach(function (f) {
+      totaux[f] = lignes.map(function (l) {
+        var n = notes[f][l.index];
+        return n === null ? null : poids * (n / bareme) * 100 + (1 - poids) * Math.min(100, Math.max(0, l.tech));
+      });
+      totaux[f].rangs = NP.classer(totaux[f]);
+    });
+    var legende = "Total sur 100 : prix " + nombre.format(poids * 100) + " %, valeur technique " + nombre.format(100 - poids * 100) + " %. Rang entre parenthèses.";
+    el("final").innerHTML = tableau(legende, lignes, formules, function (l, f) {
+      var t = totaux[f][l.index];
+      if (t === null) return '<td class="ecartee">écartée</td>';
+      var rang = totaux[f].rangs[l.index];
+      return "<td" + (rang === 1 ? ' class="meilleur"' : "") + ">" + formatNote(t, d) + ' <span class="rang">(' + rang + ")</span></td>";
+    }) + lectureFinale(lignes, totaux);
+  }
+
+  function lectureFinale(lignes, totaux) {
+    var gagnants = BASE.map(function (f) {
+      var tete = lignes.filter(function (l, i) { return totaux[f].rangs[i] === 1; }).map(function (l) { return l.lettre; });
+      return { f: f, tete: tete.join(" et ") };
+    });
+    var distincts = gagnants.map(function (g) { return g.tete; }).filter(function (t, i, a) { return a.indexOf(t) === i; });
+    if (distincts.length === 1) {
+      return '<p class="lecture">Avec ces valeurs, l\'offre ' + distincts[0] + " arrive en tête quelle que soit la méthode.</p>";
+    }
+    return '<p class="lecture"><strong>La méthode change le gagnant</strong> : ' + gagnants.map(function (g) {
+      return "offre " + g.tete + " en " + NP.FORMULES[g.f].nom.toLowerCase();
+    }).join(", ") + ".</p>";
+  }
+
+  function exemple() {
+    var tech = ["55", "70", "80", "90", "95"];
+    offres = DAJ.map(function (m, i) { return { montant: m, ecartee: false, tech: tech[i] }; });
+    dessinerOffres(); calculer();
+  }
+
+  el("ajouter").addEventListener("click", function () {
+    offres.push({ montant: "", ecartee: false, tech: "" }); dessinerOffres(); calculer();
+    var champs = el("offres").querySelectorAll('input[type="text"]');
+    champs[champs.length - 1].focus();
+  });
+  el("exemple").addEventListener("click", exemple);
+  el("vider").addEventListener("click", function () {
+    offres = [{ montant: "", ecartee: false, tech: "" }, { montant: "", ecartee: false, tech: "" }];
+    dessinerOffres(); calculer();
+  });
+  el("avec-technique").addEventListener("change", function () { dessinerOffres(); calculer(); });
+  ["bareme", "decimales", "variantes", "poids", "k", "alpha", "beta"].forEach(function (id) {
+    el(id).addEventListener("input", calculer);
+    el(id).addEventListener("change", calculer);
+  });
+  exemple();
+})();
+</script>
+</body>
+</html>
